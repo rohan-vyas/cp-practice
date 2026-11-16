@@ -1,0 +1,4 @@
+problems/*/sol
+aoc/**/sol
+aoc/**/input.txt
+*.dSYM/

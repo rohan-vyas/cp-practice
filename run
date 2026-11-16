@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Usage: ./run cf1985A        compile with sanitizers and check every tests/N.in against N.out
+#        ./run cf1985A fast   compile -O2 (no sanitizers), same checks, prints time
+#        ./run aoc 5          compile and run aoc/2026/day05 on its input.txt
+set -euo pipefail
+cd "$(dirname "$0")"
+CXX=${CXX:-clang++}
+FLAGS="-std=c++20 -Wall -Wextra -Wshadow -I include"
+DBG="-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer"
+if [[ "${1:-}" == "aoc" ]]; then
+  d=$(printf "aoc/2026/day%02d" "${2:?day}")
+  $CXX $FLAGS -O2 "$d/sol.cpp" -o "$d/sol" && (cd "$d" && time ./sol input.txt)
+  exit
+fi
+d="problems/${1:?problem id}"; mode=${2:-debug}
+[[ $mode == fast ]] && OPT="-O2" || OPT="$DBG"
+$CXX $FLAGS $OPT "$d/sol.cpp" -o "$d/sol"
+pass=0; fail=0
+for in in "$d"/tests/*.in; do
+  [[ -s "$in" ]] || continue
+  exp="${in%.in}.out"; start=$(date +%s%N 2>/dev/null || echo 0)
+  got=$("$d/sol" < "$in")
+  if diff -bq <(echo "$got") "$exp" >/dev/null; then pass=$((pass+1)); echo "PASS $(basename "$in")"
+  else fail=$((fail+1)); echo "FAIL $(basename "$in")"; echo "--- expected"; cat "$exp"; echo "--- got"; echo "$got"; fi
+done
+echo "$pass passed, $fail failed"
+[[ $fail -eq 0 ]]

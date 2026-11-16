@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Usage: ./new cf1985A        (creates problems/cf1985A/ with sol.cpp and a sample test)
+#        ./new aoc 5          (creates aoc/2026/day05/)
+set -euo pipefail
+cd "$(dirname "$0")"
+if [[ "${1:-}" == "aoc" ]]; then
+  d=$(printf "aoc/2026/day%02d" "${2:?day number}"); mkdir -p "$d"
+  [[ -f "$d/sol.cpp" ]] || cp .templates/aoc.cpp "$d/sol.cpp"
+  echo "created $d (paste your input into $d/input.txt)"
+else
+  d="problems/${1:?problem id}"; mkdir -p "$d/tests"
+  [[ -f "$d/sol.cpp" ]] || cp .templates/template.cpp "$d/sol.cpp"
+  [[ -f "$d/tests/1.in" ]] || { : > "$d/tests/1.in"; : > "$d/tests/1.out"; }
+  echo "created $d (paste samples into $d/tests/1.in and 1.out; add 2.in/2.out for more)"
+fi
